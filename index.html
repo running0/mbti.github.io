@@ -303,7 +303,7 @@
         <div class="name-input-container" id="nameInputContainer">
             <div class="input-group">
                 <label for="userName">请输入您的姓名：</label>
-                <input type="text" id="userName" class="name-input" placeholder="请输入姓名">
+                <input type="text" id="nameInput" class="name-input" placeholder="请输入姓名">
                 <button class="start-button" id="startButton">开始测试</button>
             </div>
         </div>
@@ -684,33 +684,41 @@
             }
             
             // 显示结果
-            function showResult() {
-                const mbtiType = calculateResult();
-                const typeInfo = mbtiTypes[mbtiType];
-                
-                if (typeInfo) {
-                    elements.resultType.textContent = mbtiType;
-                    elements.resultType.style.color = typeInfo.color;
-                    elements.resultName.textContent = typeInfo.name;
-                    elements.resultDescription.textContent = typeInfo.description;
-                    elements.resultImage.textContent = typeInfo.emoji;
-                }
-                
-                // 添加滑入动画
-                elements.questionContainer.style.display = 'none';
-                elements.progressContainer.style.display = 'none';
-                elements.resultContainer.style.display = 'block';
-                elements.resultContainer.style.opacity = '0';
-                elements.resultContainer.style.transform = 'translateY(20px)';
-                
-                setTimeout(() => {
-                    elements.resultContainer.style.opacity = '1';
-                    elements.resultContainer.style.transform = 'translateY(0)';
-                }, 100);
-                
-                // 发送测试结果到后端
-                saveTestResult(userName, mbtiType);
-            }
+          // 显示结果
+function showResult() {
+    const mbtiType = calculateResult();
+    const typeInfo = mbtiTypes[mbtiType];
+    
+    if (typeInfo) {
+        elements.resultType.textContent = mbtiType;
+        elements.resultType.style.color = typeInfo.color;
+        elements.resultName.textContent = typeInfo.name;
+        elements.resultDescription.textContent = typeInfo.description;
+        elements.resultImage.textContent = typeInfo.emoji;
+    }
+    
+    // 添加滑入动画
+    elements.questionContainer.style.display = 'none';
+    elements.progressContainer.style.display = 'none';
+    elements.resultContainer.style.display = 'block';
+    elements.resultContainer.style.opacity = '0';
+    elements.resultContainer.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+        elements.resultContainer.style.opacity = '1';
+        elements.resultContainer.style.transform = 'translateY(0)';
+    }, 100);
+    
+    // 🔑 修复：正确获取用户名
+   const userName = document.getElementById('userNameInput').value.trim();
+    
+    // 发送测试结果到后端
+    if (userName && mbtiType) {
+        saveTestResult(userName, mbtiType);
+    } else {
+        console.warn('姓名或 MBTI 类型为空，未保存');
+    }
+}
             
             // API配置 - 优先使用config.js中的配置，否则使用当前域名
             const API_BASE_URL = window.API_BASE_URL || window.location.origin;
