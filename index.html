@@ -716,27 +716,36 @@
             const API_BASE_URL = window.API_BASE_URL || window.location.origin;
             
             // 保存测试结果到后端
-            async function saveTestResult(name, mbtiType) {
-                try {
-                    const response = await fetch(`${API_BASE_URL}/api/test-results`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            name: name,
-                            mbtiType: mbtiType,
-                            timestamp: new Date().toISOString()
-                        })
-                    });
-                    
-                    if (!response.ok) {
-                        console.error('保存测试结果失败');
-                    }
-                } catch (error) {
-                    console.error('保存测试结果时出错:', error);
-                }
-            }
+          // 发送测试结果到 Render 后端
+async function saveTestResult(name, mbtiType) {
+    // 🔥 关键：硬编码你的 Render 后端地址
+    const RENDER_API_URL = 'https://mbti-github-io.onrender.com';
+    
+    try {
+        const response = await fetch(`${RENDER_API_URL}/api/test-results`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: name,
+                mbtiType: mbtiType,
+                timestamp: new Date().toISOString()
+            })
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('提交失败:', errorText);
+            alert('❌ 提交失败，请稍后再试');
+        } else {
+            console.log('✅ 测试结果提交成功！');
+        }
+    } catch (error) {
+        console.error('网络错误:', error);
+        alert('🌐 网络错误，请用 Chrome 或 Safari 打开');
+    }
+}
             
             // 页面加载完成后初始化
             if (document.readyState === 'loading') {
