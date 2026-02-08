@@ -302,7 +302,7 @@
         
         <div class="name-input-container" id="nameInputContainer">
             <div class="input-group">
-                <label for="userName">请输入您的姓名：</label>
+                <label for="nameInput">请输入您的姓名：</label>
                 <input type="text" id="nameInput" class="name-input" placeholder="请输入姓名">
                 <button class="start-button" id="startButton">开始测试</button>
             </div>
@@ -538,7 +538,7 @@
             let answers = [];
             let userName = '';
             
-            // DOM元素缓存
+            // DOM元素缓存（✅ 已修正）
             const elements = {
                 nameInputContainer: document.getElementById('nameInputContainer'),
                 progressContainer: document.getElementById('progressContainer'),
@@ -551,20 +551,19 @@
                 resultName: document.getElementById('resultName'),
                 resultDescription: document.getElementById('resultDescription'),
                 resultImage: document.getElementById('resultImage'),
-                userNameInput: document.getElementById('userName'),
+                nameInput: document.getElementById('nameInput'), // ✅ 正确 ID
                 startButton: document.getElementById('startButton')
             };
             
             // 初始化应用
             function initApp() {
-                // 绑定开始按钮事件
+                if (!elements.nameInput || !elements.startButton) {
+                    console.error('DOM 元素未找到，请检查 HTML 结构');
+                    return;
+                }
                 elements.startButton.addEventListener('click', handleStartTest);
-                
-                // 绑定重新开始按钮事件
                 elements.restartButton.addEventListener('click', initTest);
-                
-                // 绑定姓名输入回车事件
-                elements.userNameInput.addEventListener('keypress', (e) => {
+                elements.nameInput.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') {
                         handleStartTest();
                     }
@@ -573,12 +572,11 @@
             
             // 处理开始测试
             function handleStartTest() {
-                userName = elements.userNameInput.value.trim();
+                userName = elements.nameInput.value.trim(); // ✅ 正确获取
                 if (!userName) {
                     alert('请输入您的姓名');
                     return;
                 }
-                
                 elements.nameInputContainer.style.display = 'none';
                 initTest();
             }
@@ -597,8 +595,6 @@
             // 显示题目
             function showQuestion(index) {
                 const question = questions[index];
-                
-                // 创建题目元素
                 const questionHTML = `
                     <div class="question-number">问题 ${question.id}/12</div>
                     <div class="question-text">${question.text}</div>
@@ -610,14 +606,10 @@
                         `).join('')}
                     </div>
                 `;
-                
-                // 添加淡入动画
                 elements.questionContainer.style.opacity = '0';
                 setTimeout(() => {
                     elements.questionContainer.innerHTML = questionHTML;
                     elements.questionContainer.style.opacity = '1';
-                    
-                    // 添加选项点击事件
                     bindOptionEvents();
                 }, 200);
             }
@@ -635,13 +627,9 @@
                 const option = event.target;
                 const selectedDimension = option.dataset.dimension;
                 answers.push(selectedDimension);
-                
-                // 标记选中状态
                 const options = elements.questionContainer.querySelectorAll('.option');
                 options.forEach(opt => opt.classList.remove('selected'));
                 option.classList.add('selected');
-                
-                // 延迟切换到下一题
                 setTimeout(() => {
                     if (currentQuestionIndex < questions.length - 1) {
                         currentQuestionIndex++;
@@ -662,98 +650,74 @@
             
             // 计算结果
             function calculateResult() {
-                const scores = {
-                    E: 0, I: 0,
-                    S: 0, N: 0,
-                    T: 0, F: 0,
-                    J: 0, P: 0
-                };
-                
-                // 统计得分
-                answers.forEach(dimension => {
-                    scores[dimension]++;
-                });
-                
-                // 确定每个维度的倾向
+                const scores = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
+                answers.forEach(dimension => scores[dimension]++);
                 const eOrI = scores.E > scores.I ? 'E' : 'I';
                 const sOrN = scores.S > scores.N ? 'S' : 'N';
                 const tOrF = scores.T > scores.F ? 'T' : 'F';
                 const jOrP = scores.J > scores.P ? 'J' : 'P';
-                
                 return eOrI + sOrN + tOrF + jOrP;
             }
             
-            // 显示结果
-          // 显示结果
-function showResult() {
-    const mbtiType = calculateResult();
-    const typeInfo = mbtiTypes[mbtiType];
-    
-    if (typeInfo) {
-        elements.resultType.textContent = mbtiType;
-        elements.resultType.style.color = typeInfo.color;
-        elements.resultName.textContent = typeInfo.name;
-        elements.resultDescription.textContent = typeInfo.description;
-        elements.resultImage.textContent = typeInfo.emoji;
-    }
-    
-    // 添加滑入动画
-    elements.questionContainer.style.display = 'none';
-    elements.progressContainer.style.display = 'none';
-    elements.resultContainer.style.display = 'block';
-    elements.resultContainer.style.opacity = '0';
-    elements.resultContainer.style.transform = 'translateY(20px)';
-    
-    setTimeout(() => {
-        elements.resultContainer.style.opacity = '1';
-        elements.resultContainer.style.transform = 'translateY(0)';
-    }, 100);
-    
-    // 🔑 修复：正确获取用户名
-   const userName = document.getElementById('userNameInput').value.trim();
-    
-    // 发送测试结果到后端
-    if (userName && mbtiType) {
-        saveTestResult(userName, mbtiType);
-    } else {
-        console.warn('姓名或 MBTI 类型为空，未保存');
-    }
-}
+            // 显示结果（✅ 已修正）
+            function showResult() {
+                const mbtiType = calculateResult();
+                const typeInfo = mbtiTypes[mbtiType];
+                
+                if (typeInfo) {
+                    elements.resultType.textContent = mbtiType;
+                    elements.resultType.style.color = typeInfo.color;
+                    elements.resultName.textContent = typeInfo.name;
+                    elements.resultDescription.textContent = typeInfo.description;
+                    elements.resultImage.textContent = typeInfo.emoji;
+                }
+                
+                // 动画
+                elements.questionContainer.style.display = 'none';
+                elements.progressContainer.style.display = 'none';
+                elements.resultContainer.style.display = 'block';
+                elements.resultContainer.style.opacity = '0';
+                elements.resultContainer.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    elements.resultContainer.style.opacity = '1';
+                    elements.resultContainer.style.transform = 'translateY(0)';
+                }, 100);
+                
+                // ✅ 使用全局变量 userName（已在 handleStartTest 中设置）
+                if (userName && mbtiType) {
+                    saveTestResult(userName, mbtiType);
+                } else {
+                    console.warn('姓名或 MBTI 类型为空，未保存');
+                }
+            }
             
-            // API配置 - 优先使用config.js中的配置，否则使用当前域名
-            const API_BASE_URL = window.API_BASE_URL || window.location.origin;
-            
-            // 保存测试结果到后端
-          // 发送测试结果到 Render 后端
-async function saveTestResult(name, mbtiType) {
-    // 🔥 关键：硬编码你的 Render 后端地址
-    const RENDER_API_URL = 'https://mbti-github-io.onrender.com';
-    
-    try {
-        const response = await fetch(`${RENDER_API_URL}/api/test-results`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                name: name,
-                mbtiType: mbtiType,
-                timestamp: new Date().toISOString()
-            })
-        });
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('提交失败:', errorText);
-            alert('❌ 提交失败，请稍后再试');
-        } else {
-            console.log('✅ 测试结果提交成功！');
-        }
-    } catch (error) {
-        console.error('网络错误:', error);
-        alert('🌐 网络错误，请用 Chrome 或 Safari 打开');
-    }
-}
+            // 发送测试结果到 Render 后端（✅ 带错误提示）
+            async function saveTestResult(name, mbtiType) {
+                const RENDER_API_URL = 'https://mbti-github-io.onrender.com';
+                try {
+                    const response = await fetch(`${RENDER_API_URL}/api/test-results`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: name,
+                            mbtiType: mbtiType,
+                            timestamp: new Date().toISOString()
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        alert('✅ 数据已成功提交到服务器！');
+                    } else {
+                        const errorText = await response.text();
+                        console.error('服务器返回错误:', errorText);
+                        alert('❌ 提交失败：' + response.status);
+                    }
+                } catch (error) {
+                    console.error('网络错误:', error);
+                    alert('🌐 网络错误，请用 Chrome 或 Safari 打开');
+                }
+            }
             
             // 页面加载完成后初始化
             if (document.readyState === 'loading') {
