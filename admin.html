@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MBTI测试 - 管理员界面</title>
+    <script src="config.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #F8F9FA;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background-color: #5B86E5;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+        }
+
+        .header .back-link {
+            color: white;
+            text-decoration: none;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .header .back-link:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: #666666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #5B86E5;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .refresh-button {
+            padding: 10px 20px;
+            background-color: #5B86E5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .refresh-button:hover {
+            background-color: #4A76E1;
+        }
+
+        .search-input {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            width: 300px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #5B86E5;
+        }
+
+        .table-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background-color: #f8f9fa;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333333;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .mbti-type {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .delete-button {
+            padding: 6px 12px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .delete-button:hover {
+            background-color: #c82333;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666666;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666666;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .search-input {
+                width: 100%;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            th, td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>MBTI测试 - 管理员界面</h1>
+            <a href="/" class="back-link">返回测试页面</a>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <h3>总测试次数</h3>
+                <div class="value" id="totalTests">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>今日测试</h3>
+                <div class="value" id="todayTests">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>最常见类型</h3>
+                <div class="value" id="mostCommonType">-</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <input type="text" class="search-input" id="searchInput" placeholder="搜索姓名或MBTI类型...">
+            <button class="refresh-button" id="refreshButton">刷新数据</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>姓名</th>
+                        <th>MBTI类型</th>
+                        <th>测试时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const MBTI_COLORS = {
+            ISTJ: '#4ECDC4', ISFJ: '#45B7D1', INFJ: '#96CEB4', INTJ: '#FFEAA7',
+            ISTP: '#F7DC6F', ISFP: '#DDA0DD', INFP: '#FF6B6B', INTP: '#36D1DC',
+            ESTP: '#FF6B6B', ESFP: '#F7DC6F', ENFP: '#96CEB4', ENTP: '#36D1DC',
+            ESTJ: '#4ECDC4', ESFJ: '#45B7D1', ENFJ: '#96CEB4', ENTJ: '#FFEAA7'
+        };
+
+        // API配置 - 优先使用config.js中的配置，否则使用当前域名
+        const API_BASE_URL = window.API_BASE_URL || window.location.origin;
+
+        let allResults = [];
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function getMBTIColor(type) {
+            return MBTI_COLORS[type] || '#5B86E5';
+        }
+
+        function updateStatistics(results) {
+            const totalTests = results.length;
+            const today = new Date().toDateString();
+            const todayTests = results.filter(r => new Date(r.timestamp).toDateString() === today).length;
+
+            document.getElementById('totalTests').textContent = totalTests;
+            document.getElementById('todayTests').textContent = todayTests;
+
+            if (totalTests > 0) {
+                const typeCounts = {};
+                results.forEach(r => {
+                    typeCounts[r.mbtiType] = (typeCounts[r.mbtiType] || 0) + 1;
+                });
+
+                let mostCommonType = '-';
+                let maxCount = 0;
+                Object.entries(typeCounts).forEach(([type, count]) => {
+                    if (count > maxCount) {
+                        maxCount = count;
+                        mostCommonType = type;
+                    }
+                });
+
+                document.getElementById('mostCommonType').textContent = mostCommonType;
+                document.getElementById('mostCommonType').style.color = getMBTIColor(mostCommonType);
+            }
+        }
+
+        function renderTable(results) {
+            const tbody = document.getElementById('resultsTableBody');
+            
+            if (results.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">暂无测试数据</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = results.map(result => `
+                <tr>
+                    <td>${result.id}</td>
+                    <td>${result.name}</td>
+                    <td>
+                        <span class="mbti-type" style="background-color: ${getMBTIColor(result.mbtiType)}">
+                            ${result.mbtiType}
+                        </span>
+                    </td>
+                    <td>${formatDate(result.timestamp)}</td>
+                    <td>
+                        <button class="delete-button" onclick="deleteResult(${result.id})">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function fetchResults() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/test-results`);
+                if (response.ok) {
+                    allResults = await response.json();
+                    updateStatistics(allResults);
+                    renderTable(allResults);
+                }
+            } catch (error) {
+                console.error('获取测试结果失败:', error);
+                alert('获取测试结果失败');
+            }
+        }
+
+        async function deleteResult(id) {
+            if (!confirm('确定要删除这条测试记录吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/test-results/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('删除成功');
+                    fetchResults();
+                } else {
+                    alert('删除失败');
+                }
+            } catch (error) {
+                console.error('删除测试结果失败:', error);
+                alert('删除失败');
+            }
+        }
+
+        function filterResults() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filteredResults = allResults.filter(result => 
+                result.name.toLowerCase().includes(searchTerm) ||
+                result.mbtiType.toLowerCase().includes(searchTerm)
+            );
+            renderTable(filteredResults);
+        }
+
+        document.getElementById('refreshButton').addEventListener('click', fetchResults);
+        document.getElementById('searchInput').addEventListener('input', filterResults);
+
+        fetchResults();
+    </script>
+</body>
+</html>
